@@ -1,4 +1,4 @@
--- | Class definition layout: header, superclasses, method rows.
+-- | Class definition layout: header, superclasses, own methods, inherited methods.
 module Hylograph.Sigil.Layout.ClassDef
   ( layoutClassDef
   ) where
@@ -9,7 +9,7 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Set as Set
 
-import Hylograph.Sigil.Types (RenderType)
+import Hylograph.Sigil.Types (RenderType, SuperclassInfo)
 import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions)
 import Hylograph.Sigil.Color (colors, assignVarColors)
 import Hylograph.Sigil.Text (constraintText, collectForallVars, collectTypeVars)
@@ -20,7 +20,7 @@ import Hylograph.Sigil.Layout (unwrapType, renderNode, renderSmallPill)
 layoutClassDef
   :: { name :: String
      , typeParams :: Array String
-     , superclasses :: Array String
+     , superclasses :: Array SuperclassInfo
      , methods :: Array { name :: String, ast :: Maybe RenderType }
      }
   -> { layout :: LayoutNode, dimensions :: Dimensions }
@@ -30,16 +30,29 @@ layoutClassDef opts =
     ctx0 = defaultRenderContext { varColors = baseVarColors }
 
     headerH = 28.0
-    superH = if Array.length opts.superclasses > 0 then 22.0 else 0.0
+    hasSuperclasses = not (Array.null opts.superclasses)
+    superH = if hasSuperclasses then 22.0 else 0.0
 
-    -- Calculate actual height per method
+    -- Own method stats
     methodStats = map (\m -> calcMethodStats ctx0 opts.typeParams m) opts.methods
     totalMethodH = Array.foldl (\acc s -> acc + s.height) 0.0 methodStats
     totalMethodH' = if Array.null opts.methods then 30.0 else totalMethodH
-    maxMethodW = Array.foldl (\acc s -> max acc s.width) (textWidth ctx0.charWidth ("class " <> opts.name) + 80.0) methodStats
+    maxMethodW = Array.foldl (\acc s -> max acc s.width)
+      (textWidth ctx0.charWidth ("class " <> opts.name) + 80.0) methodStats
 
-    totalH = headerH + superH + totalMethodH' + 16.0
-    totalW = max maxMethodW 200.0
+    -- Inherited method stats (from superclasses)
+    hasInheritedMethods = hasSuperclasses &&
+      Array.any (\sc -> not (Array.null sc.methods)) opts.superclasses
+    inheritedStats = if hasInheritedMethods
+      then computeInheritedStats ctx0 opts.typeParams opts.superclasses
+      else { height: 0.0, width: 0.0 }
+    -- Add separator + section padding if inherited methods present
+    inheritedSectionH = if hasInheritedMethods
+      then 12.0 + inheritedStats.height  -- 12px for dashed separator area
+      else 0.0
+
+    totalH = headerH + superH + totalMethodH' + inheritedSectionH + 16.0
+    totalW = max (max maxMethodW inheritedStats.width) 200.0
 
     -- Header bar
     headerRect = LRect
@@ -58,17 +71,24 @@ layoutClassDef opts =
       in { px: acc.px + pillR.width + 3.0, nodes: acc.nodes <> pillR.nodes }
     ) { px: paramStartX, nodes: [] } opts.typeParams
 
-    -- Superclass constraints
-    superNodes = buildSuperclassRow opts.superclasses headerH
+    -- Superclass names row
+    superNames = map _.name opts.superclasses
+    superNodes = buildSuperclassRow superNames headerH
 
-    -- Methods
+    -- Own methods
     methodStartY = headerH + superH
     methodsResult = buildMethods ctx0 opts.typeParams opts.methods methodStats totalW methodStartY
+
+    -- Inherited methods section
+    inheritedStartY = methodStartY + totalMethodH'
+    inheritedNodes = if hasInheritedMethods
+      then buildInheritedSection ctx0 opts.typeParams opts.superclasses totalW inheritedStartY
+      else []
 
     layout = LGroup
       { transform: ""
       , children: [headerRect, classKw, nameNode] <> paramAcc.nodes
-                   <> superNodes <> methodsResult
+                   <> superNodes <> methodsResult <> inheritedNodes
       }
   in
     { layout, dimensions: { width: totalW, height: totalH } }
@@ -99,24 +119,26 @@ buildSuperclassRow superclasses headerH =
   else
     let
       ctx = defaultRenderContext
+      -- Scale charWidth for the 10px font used in superclass row
+      scCharW = ctx.charWidth * 10.0 / ctx.fontSize
       arrowNode = LText
         { x: 12.0, y: headerH + 11.0, text: "\x2190"
         , fontSize: 11.0, style: "fill:" <> colors.constraintBd <> ";" }
-      startX = 12.0 + ctx.charWidth + 4.0
+      startX = 12.0 + scCharW * 1.5 + 4.0
       scAcc = Array.foldl (\acc idx ->
         case Array.index superclasses idx of
           Nothing -> acc
           Just sc ->
             let
               comma = if idx > 0 then
-                [ LText { x: acc.sx, y: headerH + 11.0, text: ","
+                [ LText { x: acc.sx, y: headerH + 11.0, text: ", "
                         , fontSize: 10.0, style: "fill:" <> colors.separator <> ";" } ]
               else []
-              commaW = if idx > 0 then ctx.charWidth else 0.0
+              commaW = if idx > 0 then scCharW * 2.0 else 0.0
               scNode = LText
                 { x: acc.sx + commaW, y: headerH + 11.0, text: sc
                 , fontSize: 10.0, style: "fill:" <> colors.constraint <> ";font-weight:600;" }
-            in { sx: acc.sx + commaW + textWidth ctx.charWidth sc + 4.0
+            in { sx: acc.sx + commaW + textWidth scCharW sc + 3.0
                , nodes: acc.nodes <> comma <> [scNode]
                }
       ) { sx: startX, nodes: [] } (Array.range 0 (Array.length superclasses - 1))
@@ -148,6 +170,67 @@ buildMethods ctx0 typeParams methods stats totalW startY =
             in { curY: acc.curY + statHeight, nodes: acc.nodes <> separator <> methodNodes.nodes }
       ) { curY: startY, nodes: [] } (Array.range 0 (Array.length methods - 1))
     in result.nodes
+
+-- | Compute total height and max width for the inherited methods section.
+computeInheritedStats :: RenderContext -> Array String -> Array SuperclassInfo
+                      -> { height :: Number, width :: Number }
+computeInheritedStats ctx0 typeParams superclasses =
+  let
+    result = Array.foldl (\acc sc ->
+      if Array.null sc.methods then acc
+      else
+        let
+          -- "via ClassName" header: 20px
+          headerH = 20.0
+          headerW = textWidth ctx0.charWidth ("via " <> sc.name) + 40.0
+          mStats = map (\m -> calcMethodStats ctx0 typeParams m) sc.methods
+          mTotalH = Array.foldl (\a s -> a + s.height) 0.0 mStats
+          mMaxW = Array.foldl (\a s -> max a s.width) headerW mStats
+        in { height: acc.height + headerH + mTotalH
+           , width: max acc.width mMaxW
+           }
+    ) { height: 0.0, width: 0.0 } superclasses
+  in result
+
+-- | Build the inherited methods section: dashed separator + "via ClassName:" groups.
+buildInheritedSection :: RenderContext -> Array String -> Array SuperclassInfo
+                      -> Number -> Number -> Array LayoutNode
+buildInheritedSection ctx0 typeParams superclasses totalW startY =
+  let
+    -- Dashed separator line
+    sepY = startY + 6.0
+    separator =
+      [ LLine { x1: 8.0, y1: sepY, x2: totalW - 8.0, y2: sepY
+               , stroke: "#d4d4d8", strokeWidth: 1.0
+               , strokeLinecap: "", strokeDasharray: "4 3" } ]
+
+    -- Render each superclass group
+    result = Array.foldl (\acc sc ->
+      if Array.null sc.methods then acc
+      else
+        let
+          curY = acc.curY
+          -- "via ClassName" header
+          viaLabel = LText
+            { x: 12.0, y: curY + 12.0, text: "via " <> sc.name
+            , fontSize: 10.0, style: "fill:" <> colors.constraint <> ";font-weight:600;font-style:italic;" }
+
+          -- Render methods for this superclass (using semi-transparent group)
+          methodAcc = Array.foldl (\mAcc m ->
+            let
+              mNodes = renderMethod ctx0 typeParams m mAcc.my
+              stats = calcMethodStats ctx0 typeParams m
+            in { my: mAcc.my + stats.height, nodes: mAcc.nodes <> mNodes.nodes }
+          ) { my: curY + 20.0, nodes: [] } sc.methods
+
+          groupNodes = LGroup
+            { transform: ""
+            , children: [viaLabel] <> methodAcc.nodes
+            }
+        in { curY: methodAcc.my, nodes: acc.nodes <> [groupNodes] }
+    ) { curY: startY + 12.0, nodes: [] } superclasses
+
+  in separator <> result.nodes
 
 renderMethod :: RenderContext -> Array String -> { name :: String, ast :: Maybe RenderType } -> Number
              -> { nodes :: Array LayoutNode, curY :: Number }

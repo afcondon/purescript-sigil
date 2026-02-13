@@ -5,6 +5,7 @@ module Hylograph.Sigil.Types
   ( RenderType(..)
   , RowField
   , Constraint
+  , SuperclassInfo
   ) where
 
 import Prim hiding (Constraint, Row)
@@ -27,3 +28,10 @@ data RenderType
 
 type RowField = { label :: String, value :: RenderType }
 type Constraint = { className :: String, args :: Array RenderType }
+
+-- | Superclass info for class definition rendering.
+-- | Contains the class name and its required methods with optional parsed types.
+type SuperclassInfo =
+  { name :: String
+  , methods :: Array { name :: String, ast :: Maybe RenderType }
+  }

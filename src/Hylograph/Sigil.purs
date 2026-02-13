@@ -15,7 +15,7 @@ module Hylograph.Sigil
   ) where
 
 import Prim hiding (Constraint, Row)
-import Hylograph.Sigil.Types (RenderType(..), RowField, Constraint)
+import Hylograph.Sigil.Types (RenderType(..), RowField, Constraint, SuperclassInfo)
 import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions, RenderResult)
 import Hylograph.Sigil.Layout.Signature (layoutSignature)
 import Hylograph.Sigil.Layout.ADT (layoutADT)

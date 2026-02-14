@@ -22,6 +22,7 @@ layoutSparkline
   :: { ast :: RenderType
      , maxWidth :: Number
      , maxHeight :: Number
+     , maxScale :: Maybe Number  -- Cap scale (e.g. Just 0.55 for always-miniature)
      }
   -> Maybe { layout :: LayoutNode, scaledWidth :: Number, scaledHeight :: Number }
 layoutSparkline opts =
@@ -45,7 +46,10 @@ layoutSparkline opts =
       let
         scaleX = opts.maxWidth / fullW
         scaleY = opts.maxHeight / fullH
-        scale = min (min scaleX scaleY) 1.0
+        capScale = case opts.maxScale of
+          Just ms -> ms
+          Nothing -> 1.0
+        scale = min (min (min scaleX scaleY) capScale) 1.0
 
         -- Build inner content
         constraintNodes = if Array.length constraints > 0 then

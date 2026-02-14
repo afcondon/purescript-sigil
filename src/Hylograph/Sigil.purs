@@ -8,6 +8,7 @@ module Hylograph.Sigil
   , module Hylograph.Sigil.Layout.ADT
   , module Hylograph.Sigil.Layout.ClassDef
   , module Hylograph.Sigil.Layout.Sparkline
+  , module Hylograph.Sigil.Layout.Siglet
   , module Hylograph.Sigil.Emit
   , module Hylograph.Sigil.Text
   , module Hylograph.Sigil.Color
@@ -21,6 +22,7 @@ import Hylograph.Sigil.Layout.Signature (layoutSignature)
 import Hylograph.Sigil.Layout.ADT (layoutADT)
 import Hylograph.Sigil.Layout.ClassDef (layoutClassDef)
 import Hylograph.Sigil.Layout.Sparkline (layoutSparkline)
+import Hylograph.Sigil.Layout.Siglet (layoutSiglet)
 import Hylograph.Sigil.Emit (emit, emitNode)
 import Hylograph.Sigil.Text (renderTypeToText, collectTypeVars, collectArrowParams, collectForallVars, fieldVars)
 import Hylograph.Sigil.Color (assignVarColors)

@@ -18,13 +18,14 @@ import Data.Int (toNumber)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (split, trim)
+import Data.String.CodeUnits as SCU
 import Data.String.Pattern (Pattern(..))
 
 import Hylograph.Sigil.Types (RenderType(..), RowField, Constraint)
 import Hylograph.Sigil.Types.Layout (LayoutNode(..), RenderResult)
 import Hylograph.Sigil.Color (colors, isEffectName)
 import Hylograph.Sigil.Text (constraintText, collectArrowParams, renderTypeToText)
-import Hylograph.Sigil.Measure (RenderContext, textWidth, measure, measureFieldFull)
+import Hylograph.Sigil.Measure (RenderContext, textWidth, sigletDotWidth, measure, measureFieldFull)
 
 -- ============================================================
 -- Unwrap / parse helpers
@@ -108,6 +109,42 @@ renderArrow ctx x y =
      , width: arrowW
      }
 
+-- | Siglet dot: small circle replacing a concrete type name.
+-- | Effect types get a filled purple circle; others get a hollow green circle.
+renderSigletDot :: RenderContext -> Number -> Number -> String -> RenderResult
+renderSigletDot ctx x y name =
+  let
+    r = ctx.fontSize * 0.3
+    dotW = sigletDotWidth ctx.fontSize
+    cx = x + dotW / 2.0
+    cy = y + ctx.lineHeight / 2.0
+    isEffect = isEffectName name
+  in
+    { nodes:
+      [ LCircle
+        { cx, cy, r
+        , fill: if isEffect then colors.effect else "none"
+        , stroke: if isEffect then "none" else colors.constructor
+        , strokeWidth: if isEffect then 0.0 else 1.5
+        }
+      ]
+    , width: dotW
+    }
+
+-- | Siglet var dot: filled colored circle for multi-letter type variables.
+renderSigletVarDot :: RenderContext -> Number -> Number -> String -> RenderResult
+renderSigletVarDot ctx x y name =
+  let
+    r = ctx.fontSize * 0.3
+    dotW = sigletDotWidth ctx.fontSize
+    cx = x + dotW / 2.0
+    cy = y + ctx.lineHeight / 2.0
+    color = fromMaybe colors.typevar (Map.lookup name ctx.varColors)
+  in
+    { nodes: [LCircle { cx, cy, r, fill: color, stroke: "none", strokeWidth: 0.0 }]
+    , width: dotW
+    }
+
 -- | Constraint pile (stacked rounded rects with dashed connector).
 renderConstraintPile :: RenderContext -> Number -> Number -> Array Constraint -> RenderResult
 renderConstraintPile ctx x y constraints =
@@ -147,16 +184,20 @@ renderConstraintPile ctx x y constraints =
 renderNode :: RenderContext -> Number -> Number -> RenderType -> RenderResult
 renderNode ctx x y = case _ of
   TVar name ->
-    renderVarPill ctx x y name ctx.fontSize
+    if ctx.sigletMode && SCU.length name > 1
+      then renderSigletVarDot ctx x y name
+      else renderVarPill ctx x y name ctx.fontSize
 
   TCon name ->
-    let col = if isEffectName name then colors.effect else colors.constructor
-    in { nodes:
-          [ LText { x, y: y + ctx.lineHeight / 2.0, text: name
-                  , fontSize: ctx.fontSize
-                  , style: "fill:" <> col <> ";font-weight:600;" } ]
-       , width: textWidth ctx.charWidth name
-       }
+    if ctx.sigletMode then renderSigletDot ctx x y name
+    else
+      let col = if isEffectName name then colors.effect else colors.constructor
+      in { nodes:
+            [ LText { x, y: y + ctx.lineHeight / 2.0, text: name
+                    , fontSize: ctx.fontSize
+                    , style: "fill:" <> col <> ";font-weight:600;" } ]
+         , width: textWidth ctx.charWidth name
+         }
 
   -- Collapse Record (row) → record table
   TApp (TCon "Record") [TRow fields rowVar] ->
@@ -267,7 +308,9 @@ renderInlineForall ctx x y vars body =
     varsAcc = Array.foldl (\acc v ->
       let
         cx = if acc.first then acc.cx else acc.cx + 2.0
-        pillR = renderVarPill ctx cx y v 11.0
+        pillR = if ctx.sigletMode && SCU.length v > 1
+          then renderSigletVarDot ctx cx y v
+          else renderVarPill ctx cx y v 11.0
       in { cx: cx + pillR.width + 1.0, nodes: acc.nodes <> pillR.nodes, first: false }
     ) { cx: cx1, nodes: [], first: true } vars
 
@@ -435,27 +478,32 @@ renderFieldNode ctx x y = case _ of
     renderRecord ctx x y fields rowVar true
 
   TVar name ->
-    let
-      color = fromMaybe colors.typevar (Map.lookup name ctx.varColors)
-      pw = textWidth ctx.charWidth name + 8.0
-      ph = 15.0
-      py = y + ctx.lineHeight / 2.0 - ph / 2.0
-    in
-      { nodes:
-        [ LRect { x, y: py, width: pw, height: ph, rx: 3.0
-                , style: "fill:" <> color <> ";" }
-        , LText { x: x + 4.0, y: y + ctx.lineHeight / 2.0, text: name
-                , fontSize: 11.0, style: "fill:white;font-weight:600;font-style:italic;" } ]
-      , width: pw
-      }
+    if ctx.sigletMode && SCU.length name > 1
+      then renderSigletVarDot ctx x y name
+      else
+        let
+          color = fromMaybe colors.typevar (Map.lookup name ctx.varColors)
+          pw = textWidth ctx.charWidth name + 8.0
+          ph = 15.0
+          py = y + ctx.lineHeight / 2.0 - ph / 2.0
+        in
+          { nodes:
+            [ LRect { x, y: py, width: pw, height: ph, rx: 3.0
+                    , style: "fill:" <> color <> ";" }
+            , LText { x: x + 4.0, y: y + ctx.lineHeight / 2.0, text: name
+                    , fontSize: 11.0, style: "fill:white;font-weight:600;font-style:italic;" } ]
+          , width: pw
+          }
 
   TCon name ->
-    let col = if isEffectName name then colors.effect else colors.constructor
-    in { nodes:
-          [ LText { x, y: y + ctx.lineHeight / 2.0, text: name
-                  , fontSize: 12.0, style: "fill:" <> col <> ";font-weight:600;" } ]
-       , width: textWidth ctx.charWidth name
-       }
+    if ctx.sigletMode then renderSigletDot ctx x y name
+    else
+      let col = if isEffectName name then colors.effect else colors.constructor
+      in { nodes:
+            [ LText { x, y: y + ctx.lineHeight / 2.0, text: name
+                    , fontSize: 12.0, style: "fill:" <> col <> ";font-weight:600;" } ]
+         , width: textWidth ctx.charWidth name
+         }
 
   -- Collapse Record (row) → record table in field context
   TApp (TCon "Record") [TRow fields rowVar] ->

@@ -5,6 +5,7 @@
 module Hylograph.Sigil.Measure
   ( textWidth
   , varPillWidth
+  , sigletDotWidth
   , measure
   , measureTable
   , measureFieldFull
@@ -32,6 +33,7 @@ type RenderContext =
   , charWidth :: Number
   , lineHeight :: Number
   , padding :: { x :: Number, y :: Number }
+  , sigletMode :: Boolean
   }
 
 defaultRenderContext :: RenderContext
@@ -41,7 +43,12 @@ defaultRenderContext =
   , charWidth: 7.8
   , lineHeight: 20.0
   , padding: { x: 8.0, y: 6.0 }
+  , sigletMode: false
   }
+
+-- | Fixed width of a siglet dot (TCon rendered as circle).
+sigletDotWidth :: Number -> Number
+sigletDotWidth fontSize = fontSize * 0.6 + 4.0
 
 -- | Width of a text string in the monospace font.
 textWidth :: Number -> String -> Number
@@ -55,10 +62,14 @@ varPillWidth charWidth name = textWidth charWidth name + 10.0
 measure :: RenderContext -> RenderType -> Dimensions
 measure ctx = case _ of
   TVar name ->
-    { width: varPillWidth ctx.charWidth name, height: ctx.lineHeight }
+    if ctx.sigletMode && SCU.length name > 1
+      then { width: sigletDotWidth ctx.fontSize, height: ctx.lineHeight }
+      else { width: varPillWidth ctx.charWidth name, height: ctx.lineHeight }
 
   TCon name ->
-    { width: textWidth ctx.charWidth name, height: ctx.lineHeight }
+    if ctx.sigletMode
+      then { width: sigletDotWidth ctx.fontSize, height: ctx.lineHeight }
+      else { width: textWidth ctx.charWidth name, height: ctx.lineHeight }
 
   -- Collapse Record (row) → record table
   TApp (TCon "Record") [TRow fields rowVar] ->
@@ -95,7 +106,11 @@ measure ctx = case _ of
     let
       w0 = 10.0 -- 5px padding each side
       w1 = w0 + ctx.charWidth + 2.0 -- forall symbol
-      w2 = Array.foldl (\w v -> w + varPillWidth ctx.charWidth v + 3.0) w1 vars
+      w2 = Array.foldl (\w v ->
+        let vw = if ctx.sigletMode && SCU.length v > 1
+              then sigletDotWidth ctx.fontSize
+              else varPillWidth ctx.charWidth v
+        in w + vw + 3.0) w1 vars
       w3 = w2 + ctx.charWidth -- dot separator
       bodyM = measure ctx body
     in { width: w3 + bodyM.width, height: bodyM.height }
@@ -161,10 +176,14 @@ measureTable ctx fields rowVar =
 measureFieldFull :: RenderContext -> RenderType -> Dimensions
 measureFieldFull ctx = case _ of
   TVar name ->
-    { width: varPillWidth ctx.charWidth name, height: ctx.lineHeight }
+    if ctx.sigletMode && SCU.length name > 1
+      then { width: sigletDotWidth ctx.fontSize, height: ctx.lineHeight }
+      else { width: varPillWidth ctx.charWidth name, height: ctx.lineHeight }
 
   TCon name ->
-    { width: textWidth ctx.charWidth name, height: ctx.lineHeight }
+    if ctx.sigletMode
+      then { width: sigletDotWidth ctx.fontSize, height: ctx.lineHeight }
+      else { width: textWidth ctx.charWidth name, height: ctx.lineHeight }
 
   TRecord fields rowVar -> measureTable ctx fields rowVar
   TRow fields rowVar -> measureTable ctx fields rowVar

@@ -2,11 +2,12 @@
 -- |
 -- | All functions are pure — they produce positioned LayoutNode trees
 -- | without touching the DOM.
-module Hylograph.Sigil.Layout
+module Sigil.Svg.Layout
   ( unwrapType
   , parseClassName
   , renderNode
   , renderSmallPill
+  , renderSigletVarDot
   , renderConstraintPile
   ) where
 
@@ -21,11 +22,11 @@ import Data.String (split, trim)
 import Data.String.CodeUnits as SCU
 import Data.String.Pattern (Pattern(..))
 
-import Hylograph.Sigil.Types (RenderType(..), RowField, Constraint)
-import Hylograph.Sigil.Types.Layout (LayoutNode(..), RenderResult)
-import Hylograph.Sigil.Color (colors, isEffectName)
-import Hylograph.Sigil.Text (constraintText, collectArrowParams, renderTypeToText)
-import Hylograph.Sigil.Measure (RenderContext, textWidth, sigletDotWidth, measure, measureFieldFull)
+import Sigil.Types (RenderType(..), RowField, Constraint)
+import Sigil.Svg.Types (LayoutNode(..), RenderResult)
+import Sigil.Color (colors, isEffectName)
+import Sigil.Text (constraintText, collectArrowParams, renderTypeToText)
+import Sigil.Svg.Measure (RenderContext, textWidth, sigletDotWidth, measure, measureFieldFull)
 
 -- ============================================================
 -- Unwrap / parse helpers
@@ -146,6 +147,8 @@ renderSigletVarDot ctx x y name =
     }
 
 -- | Constraint pile (stacked rounded rects with dashed connector).
+-- | In siglet mode, class names become dots and args use renderNode
+-- | (so multi-letter vars → dots, single-letter → pills, TCon → dots).
 renderConstraintPile :: RenderContext -> Number -> Number -> Array Constraint -> RenderResult
 renderConstraintPile ctx x y constraints =
   let
@@ -153,16 +156,8 @@ renderConstraintPile ctx x y constraints =
       case Array.index constraints idx of
         Nothing -> acc
         Just c ->
-          let
-            text = constraintText c
-            w = textWidth ctx.charWidth text + 16.0
-            pillY = y + toNumber idx * 24.0
-          in acc <>
-            [ LRect { x, y: pillY, width: w, height: 20.0, rx: 3.0
-                    , style: "fill:" <> colors.constraintBg <> ";stroke:" <> colors.constraintBd <> ";stroke-width:1;" }
-            , LText { x: x + 8.0, y: pillY + 10.0, text
-                    , fontSize: 11.0, style: "fill:" <> colors.constraint <> ";font-weight:600;" }
-            ]
+          let pillY = y + toNumber idx * 24.0
+          in acc <> renderOneConstraint ctx x pillY c
     ) [] (Array.range 0 (Array.length constraints - 1))
 
     pileBottom = y + toNumber (Array.length constraints) * 24.0
@@ -174,6 +169,33 @@ renderConstraintPile ctx x y constraints =
       }
   in
     { nodes: pileNodes <> [dashLine], width: 0.0 }
+
+-- | Render a single constraint pill. In siglet mode, the class name is a
+-- | hollow dot and each argument goes through renderNode for dot/pill treatment.
+renderOneConstraint :: RenderContext -> Number -> Number -> Constraint -> Array LayoutNode
+renderOneConstraint ctx x pillY c
+  | ctx.sigletMode =
+      let
+        nameR = renderSigletDot ctx (x + 6.0) pillY c.className
+        argsAcc = Array.foldl (\a arg ->
+          let argR = renderNode ctx a.cx pillY arg
+          in { cx: a.cx + argR.width + 2.0, nodes: a.nodes <> argR.nodes }
+        ) { cx: x + 6.0 + nameR.width + 2.0, nodes: [] } c.args
+        totalW = argsAcc.cx - x + 4.0
+      in
+        [ LRect { x, y: pillY, width: totalW, height: 20.0, rx: 3.0
+                , style: "fill:" <> colors.constraintBg <> ";stroke:" <> colors.constraintBd <> ";stroke-width:1;" }
+        ] <> nameR.nodes <> argsAcc.nodes
+  | otherwise =
+      let
+        text = constraintText c
+        w = textWidth ctx.charWidth text + 16.0
+      in
+        [ LRect { x, y: pillY, width: w, height: 20.0, rx: 3.0
+                , style: "fill:" <> colors.constraintBg <> ";stroke:" <> colors.constraintBd <> ";stroke-width:1;" }
+        , LText { x: x + 8.0, y: pillY + 10.0, text
+                , fontSize: 11.0, style: "fill:" <> colors.constraint <> ";font-weight:600;" }
+        ]
 
 -- ============================================================
 -- Main recursive renderer

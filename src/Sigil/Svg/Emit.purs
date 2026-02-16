@@ -1,7 +1,7 @@
 -- | Emit: LayoutNode → Effect Element.
 -- |
 -- | Pattern-matches on LayoutNode and calls thin SVG DOM FFI helpers.
-module Hylograph.Sigil.Emit
+module Sigil.Svg.Emit
   ( emit
   , emitNode
   ) where
@@ -12,7 +12,7 @@ import Data.Array as Array
 import Effect (Effect)
 import Web.DOM (Element)
 
-import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions)
+import Sigil.Svg.Types (LayoutNode(..), Dimensions)
 
 foreign import createSvgElement :: String -> Effect Element
 foreign import setAttr :: Element -> String -> String -> Effect Unit

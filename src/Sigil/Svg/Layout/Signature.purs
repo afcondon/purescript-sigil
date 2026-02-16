@@ -1,5 +1,5 @@
 -- | Signature layout: value declarations, type synonyms.
-module Hylograph.Sigil.Layout.Signature
+module Sigil.Svg.Layout.Signature
   ( layoutSignature
   ) where
 
@@ -10,12 +10,12 @@ import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
 import Data.Set as Set
 
-import Hylograph.Sigil.Types (RenderType)
-import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions)
-import Hylograph.Sigil.Color (colors, assignVarColors)
-import Hylograph.Sigil.Text (collectForallVars, collectTypeVars)
-import Hylograph.Sigil.Measure (defaultRenderContext, textWidth, measure)
-import Hylograph.Sigil.Layout (unwrapType, parseClassName, renderNode, renderSmallPill, renderConstraintPile)
+import Sigil.Types (RenderType)
+import Sigil.Svg.Types (LayoutNode(..), Dimensions)
+import Sigil.Color (colors, assignVarColors)
+import Sigil.Text (collectForallVars, collectTypeVars)
+import Sigil.Svg.Measure (defaultRenderContext, textWidth, measure)
+import Sigil.Svg.Layout (unwrapType, parseClassName, renderNode, renderSmallPill, renderConstraintPile)
 
 -- | Lay out a value/type-synonym signature.
 layoutSignature

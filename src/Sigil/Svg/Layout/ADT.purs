@@ -1,5 +1,5 @@
 -- | ADT layout: data types with constructor branches.
-module Hylograph.Sigil.Layout.ADT
+module Sigil.Svg.Layout.ADT
   ( layoutADT
   ) where
 
@@ -9,11 +9,11 @@ import Data.Array as Array
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
 
-import Hylograph.Sigil.Types (RenderType)
-import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions)
-import Hylograph.Sigil.Color (colors, adtColors, assignVarColors)
-import Hylograph.Sigil.Measure (defaultRenderContext, textWidth, measure)
-import Hylograph.Sigil.Layout (renderNode, renderSmallPill)
+import Sigil.Types (RenderType)
+import Sigil.Svg.Types (LayoutNode(..), Dimensions)
+import Sigil.Color (colors, adtColors, assignVarColors)
+import Sigil.Svg.Measure (defaultRenderContext, textWidth, measure)
+import Sigil.Svg.Layout (renderNode, renderSmallPill)
 
 adtRowHeight :: Number
 adtRowHeight = 28.0

@@ -1,5 +1,5 @@
 -- | Layout tree types for positioned SVG primitives.
-module Hylograph.Sigil.Types.Layout
+module Sigil.Svg.Types
   ( LayoutNode(..)
   , Dimensions
   , RenderResult

@@ -1,5 +1,5 @@
 -- | Pure text rendering and type variable collection utilities.
-module Hylograph.Sigil.Text
+module Sigil.Text
   ( renderTypeToText
   , constraintText
   , collectTypeVars
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 
-import Hylograph.Sigil.Types (RenderType(..), RowField, Constraint)
+import Sigil.Types (RenderType(..), RowField, Constraint)
 
 -- | Render a RenderType back to plain text.
 renderTypeToText :: RenderType -> String

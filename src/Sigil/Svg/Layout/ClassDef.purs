@@ -1,5 +1,5 @@
 -- | Class definition layout: header, superclasses, own methods, inherited methods.
-module Hylograph.Sigil.Layout.ClassDef
+module Sigil.Svg.Layout.ClassDef
   ( layoutClassDef
   ) where
 
@@ -9,12 +9,12 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Set as Set
 
-import Hylograph.Sigil.Types (RenderType, SuperclassInfo)
-import Hylograph.Sigil.Types.Layout (LayoutNode(..), Dimensions)
-import Hylograph.Sigil.Color (colors, assignVarColors)
-import Hylograph.Sigil.Text (constraintText, collectForallVars, collectTypeVars)
-import Hylograph.Sigil.Measure (RenderContext, defaultRenderContext, textWidth, measure)
-import Hylograph.Sigil.Layout (unwrapType, renderNode, renderSmallPill)
+import Sigil.Types (RenderType, SuperclassInfo)
+import Sigil.Svg.Types (LayoutNode(..), Dimensions)
+import Sigil.Color (colors, assignVarColors)
+import Sigil.Text (constraintText, collectForallVars, collectTypeVars)
+import Sigil.Svg.Measure (RenderContext, defaultRenderContext, textWidth, measure)
+import Sigil.Svg.Layout (unwrapType, renderNode, renderSmallPill)
 
 -- | Lay out a type class definition.
 layoutClassDef

@@ -1,10 +1,12 @@
 -- | Color palettes and type variable color assignment.
-module Hylograph.Sigil.Color
+module Sigil.Color
   ( colors
   , adtColors
   , typeVarPalette
   , assignVarColors
   , isEffectName
+  , isEffectNameIn
+  , defaultEffectNames
   , Colors
   , ADTColors
   ) where
@@ -110,8 +112,11 @@ assignVarColors vars =
     ) unique
   in Map.fromFoldable pairs
 
-effectNames :: Set.Set String
-effectNames = Set.fromFoldable ["Effect", "Aff", "MonadAff", "MonadEffect"]
+defaultEffectNames :: Set.Set String
+defaultEffectNames = Set.fromFoldable ["Effect", "Aff", "MonadAff", "MonadEffect"]
 
 isEffectName :: String -> Boolean
-isEffectName name = Set.member name effectNames
+isEffectName = isEffectNameIn defaultEffectNames
+
+isEffectNameIn :: Set.Set String -> String -> Boolean
+isEffectNameIn names name = Set.member name names

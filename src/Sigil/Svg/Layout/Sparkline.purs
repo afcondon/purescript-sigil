@@ -1,5 +1,5 @@
 -- | Sparkline layout: miniature type signature for treemap cells.
-module Hylograph.Sigil.Layout.Sparkline
+module Sigil.Svg.Layout.Sparkline
   ( layoutSparkline
   ) where
 
@@ -10,12 +10,12 @@ import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
 import Data.Set as Set
 
-import Hylograph.Sigil.Types (RenderType)
-import Hylograph.Sigil.Types.Layout (LayoutNode(..))
-import Hylograph.Sigil.Color (colors, assignVarColors)
-import Hylograph.Sigil.Text (collectForallVars, collectTypeVars)
-import Hylograph.Sigil.Measure (defaultRenderContext, measure)
-import Hylograph.Sigil.Layout (unwrapType, renderNode, renderSmallPill, renderConstraintPile)
+import Sigil.Types (RenderType)
+import Sigil.Svg.Types (LayoutNode(..))
+import Sigil.Color (colors, assignVarColors)
+import Sigil.Text (collectForallVars, collectTypeVars)
+import Sigil.Svg.Measure (defaultRenderContext, measure)
+import Sigil.Svg.Layout (unwrapType, renderNode, renderSmallPill, renderConstraintPile)
 
 -- | Lay out a sparkline miniature.
 layoutSparkline

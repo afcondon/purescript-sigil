@@ -1,7 +1,7 @@
 -- | Core type AST for rendering type signatures.
 -- |
 -- | Language-agnostic representation of type expressions.
-module Hylograph.Sigil.Types
+module Sigil.Types
   ( RenderType(..)
   , RowField
   , Constraint

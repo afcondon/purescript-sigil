@@ -2,7 +2,7 @@
 -- |
 -- | Computes dimensions (width, height) for any RenderType node
 -- | using character-width arithmetic. No DOM access.
-module Hylograph.Sigil.Measure
+module Sigil.Svg.Measure
   ( textWidth
   , varPillWidth
   , sigletDotWidth
@@ -22,9 +22,9 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits as SCU
 
-import Hylograph.Sigil.Types (RenderType(..), RowField)
-import Hylograph.Sigil.Types.Layout (Dimensions)
-import Hylograph.Sigil.Text (collectArrowParams, renderTypeToText)
+import Sigil.Types (RenderType(..), RowField)
+import Sigil.Svg.Types (Dimensions)
+import Sigil.Text (collectArrowParams, renderTypeToText)
 
 -- | Rendering context threaded through layout functions.
 type RenderContext =

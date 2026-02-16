@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hylograph Sigil Demo</title>
+  <title>purescript-sigil</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Hylograph Sigil</h1>
+    <h1>purescript-sigil</h1>
     <p class="subtitle">Typographic HTML rendering for PureScript type signatures</p>
   </header>
 
@@ -38,12 +38,20 @@
         <code>language-cst-parser</code>, assigns colors to type variables, and
         produces HTML that maps type concepts to semantic elements.
       </p>
-      <p>It provides two flavors of rendering, an information-preserving one called "sigil" 
+      <p>
+        Records are shown as tables, nested-records are supported as are open rows (table with dotted-line
+        border). 
+      </p>
+      <p>For functions it provides two flavors of rendering, an information-preserving one called "sigil" 
         and an ultra-compact "siglet" which only shows the rough form (arity, type variables etc).
         This latter is inspired by Edward Tufte's "sparklines" idea.
       </p>
       <p>
-        The additional two tabs on this page show many examples of each form.
+        For other definitions such as type-classes, data / ADT, type-aliases etc there are similarly styled,
+        information-preserving, renderings too.
+      </p>
+      <p>
+        The additional tabs on this page show many examples of each form.
       </p>
       <h3>Element mapping</h3>
       <dl class="mapping-list">

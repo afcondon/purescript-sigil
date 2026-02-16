@@ -1,4 +1,4 @@
--- | Hylograph Sigil — Typographic rendering for type signatures (HTML + SVG).
+-- | purescript-sigil — Typographic rendering for type signatures (HTML + SVG).
 -- |
 -- | Re-exports the public API.
 module Sigil

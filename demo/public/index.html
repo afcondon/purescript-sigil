@@ -20,6 +20,8 @@
     <label for="tab-sigils">Sigils</label>
     <input type="radio" name="tab" id="tab-siglets">
     <label for="tab-siglets">Siglets</label>
+    <input type="radio" name="tab" id="tab-labeled">
+    <label for="tab-labeled">Labeled</label>
     <input type="radio" name="tab" id="tab-datatypes">
     <label for="tab-datatypes">Data Types</label>
     <input type="radio" name="tab" id="tab-classes">
@@ -96,6 +98,19 @@ case parseToRenderType "forall a. Ord a => Array a -> Array a" of
           </tr>
         </thead>
         <tbody id="siglet-table"></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="panel-labeled">
+      <table class="sig-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Signature</th>
+            <th>Rendered</th>
+          </tr>
+        </thead>
+        <tbody id="labeled-table"></tbody>
       </table>
     </section>
 

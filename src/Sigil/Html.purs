@@ -16,6 +16,7 @@ module Sigil.Html
   ( renderSignature
   , renderBody
   , renderSiglet
+  , renderLabeledSiglet
   , renderDataDecl
   , renderClassDecl
   , renderTypeSynonym
@@ -23,6 +24,7 @@ module Sigil.Html
   , renderSignatureInto
   , renderBodyInto
   , renderSigletInto
+  , renderLabeledSigletInto
   , renderDataDeclInto
   , renderClassDeclInto
   , renderTypeSynonymInto
@@ -132,6 +134,26 @@ renderBodyInto selector config = _renderInto selector (renderBody config)
 -- | Render a siglet into a container element.
 renderSigletInto :: String -> { ast :: RenderType } -> Effect Unit
 renderSigletInto selector config = _renderInto selector (renderSiglet config)
+
+-- | Render a labeled siglet (dots with rotated identifier labels) to HTML.
+-- | Same dot layout as the siglet, but each dot has a 45-degree rotated
+-- | label beneath it showing the type identifier name.
+renderLabeledSiglet :: { ast :: RenderType } -> String
+renderLabeledSiglet { ast } =
+  let
+    peeled = peelSignature ast
+    allVars = Set.toUnfoldable (collectTypeVars ast)
+    varColors = assignVarColors allVars
+    cVars = collectConstrainedVarNames peeled.constraints
+    ctx = { varColors, constrainedVars: cVars }
+  in
+  "<code class=\"sig-labeled-siglet\">"
+    <> renderLabeledSigletTypeTree ctx peeled.body
+  <> "</code>"
+
+-- | Render a labeled siglet into a container element.
+renderLabeledSigletInto :: String -> { ast :: RenderType } -> Effect Unit
+renderLabeledSigletInto selector config = _renderInto selector (renderLabeledSiglet config)
 
 -- | Render a data/newtype declaration to an HTML string.
 -- | Shows header (keyword + name + type params), then constructor branches
@@ -690,6 +712,139 @@ renderRecordSiglet ctx open close fields tail =
     "<code class=\"sig-record-mini\">"
       <> "<small class=\"sig-brace\">" <> open <> "</small>"
       <> Array.intercalate "" (fields <#> \_ -> "<small class=\"sig-dot sig-dot-con\"></small>")
+      <> case tail of
+           Just v -> "<small class=\"sig-pipe\">|</small>" <> varPill ctx v
+           Nothing -> ""
+      <> "<small class=\"sig-brace\">" <> close <> "</small>"
+    <> "</code>"
+
+-- =============================================================================
+-- Labeled siglet (dots + rotated identifier labels) type tree builder
+-- =============================================================================
+
+-- | Truncate a label to 15 characters, adding ellipsis if truncated.
+truncateLabel :: String -> String
+truncateLabel s =
+  if String.length s > 15
+    then String.take 15 s <> "\x2026"
+    else s
+
+-- | Wrap a dot element and its label text in a .sig-lt column container.
+labeledToken :: String -> String -> String -> String
+labeledToken dotHtml labelText labelColor =
+  "<span class=\"sig-lt\">"
+    <> dotHtml
+    <> "<span class=\"sig-lt-label\" style=\"color:" <> labelColor <> "\">"
+        <> escapeHtml (truncateLabel labelText)
+      <> "</span>"
+  <> "</span>"
+
+-- | Labeled siglet rendering: same dots as siglet, plus rotated name labels.
+-- | Single-letter free vars render as colored text (already readable, no label).
+renderLabeledSigletTypeTree :: TreeCtx -> RenderType -> String
+renderLabeledSigletTypeTree ctx = case _ of
+  TVar name ->
+    if String.length name > 1
+      then -- Multi-letter var → colored dot + label
+        let color = fromMaybe "#0369a1" (Map.lookup name ctx.varColors)
+        in labeledToken
+             ("<var class=\"sig-dot sig-dot-var\" style=\"background:" <> color <> "\"></var>")
+             name
+             color
+      else -- Single-letter var: pill if constrained, colored text if free — no label needed
+        if Set.member name ctx.constrainedVars
+          then sigletPill ctx name
+          else varPill ctx name
+
+  TCon name ->
+    if isEffectName name
+      then labeledToken
+             "<small class=\"sig-dot sig-dot-effect\"></small>"
+             name
+             "#9333ea"
+      else labeledToken
+             "<small class=\"sig-dot sig-dot-con\"></small>"
+             name
+             "#16653e"
+
+  TApp head args ->
+    let
+      isHkt = case head of
+        TVar _ -> true
+        _ -> false
+      headHtml = case head of
+        TCon name ->
+          if isEffectName name
+            then labeledToken
+                   "<small class=\"sig-dot sig-dot-effect sig-dot-head\"></small>"
+                   name
+                   "#9333ea"
+            else labeledToken
+                   "<small class=\"sig-dot sig-dot-con sig-dot-head\"></small>"
+                   name
+                   "#16653e"
+        _ -> renderLabeledSigletTypeTree ctx head
+      argsHtml = Array.intercalate "" (args <#> renderLabeledSigletTypeTree ctx)
+      cls = if isHkt then "sig-app sig-hkt" else "sig-app"
+    in "<code class=\"" <> cls <> "\">" <> headHtml <> argsHtml <> "</code>"
+
+  TArrow from to ->
+    let params = collectArrowParams (TArrow from to)
+    in "<ol class=\"sig-arrow-chain\">"
+         <> Array.intercalate "" (params <#> \p ->
+              "<li class=\"sig-param\">" <> renderLabeledSigletTypeTree ctx p <> "</li>"
+            )
+       <> "</ol>"
+
+  TForall _ body ->
+    renderLabeledSigletTypeTree ctx body
+
+  TConstrained _ body ->
+    renderLabeledSigletTypeTree ctx body
+
+  TParens inner ->
+    "<code class=\"sig-app\">"
+      <> "<small class=\"sig-paren\">(</small>"
+      <> renderLabeledSigletTypeTree ctx inner
+      <> "<small class=\"sig-paren\">)</small>"
+    <> "</code>"
+
+  TRecord fields tail ->
+    renderRecordLabeledSiglet ctx "{" "}" fields tail
+
+  TRow fields tail ->
+    renderRecordLabeledSiglet ctx "(" ")" fields tail
+
+  TOperator l op r ->
+    "<code class=\"sig-app\">"
+      <> renderLabeledSigletTypeTree ctx l
+      <> "<small class=\"sig-op\">" <> escapeHtml op <> "</small>"
+      <> renderLabeledSigletTypeTree ctx r
+    <> "</code>"
+
+  TKinded ty _ ->
+    renderLabeledSigletTypeTree ctx ty
+
+  TString _ ->
+    "<code class=\"sig-string\">\"\"</code>"
+
+  TWildcard ->
+    "<var class=\"sig-dot sig-dot-var sig-wildcard\"></var>"
+
+-- | Record/row in labeled siglet: `{ ○ ○ ○ }` with field name labels.
+renderRecordLabeledSiglet :: TreeCtx -> String -> String -> Array { label :: String, value :: RenderType } -> Maybe String -> String
+renderRecordLabeledSiglet ctx open close fields tail =
+  if Array.null fields && tail == Nothing then
+    "<small class=\"sig-dot sig-dot-con\"></small>"
+  else
+    "<code class=\"sig-record-mini\">"
+      <> "<small class=\"sig-brace\">" <> open <> "</small>"
+      <> Array.intercalate "" (fields <#> \f ->
+           labeledToken
+             "<small class=\"sig-dot sig-dot-con\"></small>"
+             f.label
+             "#16653e"
+         )
       <> case tail of
            Just v -> "<small class=\"sig-pipe\">|</small>" <> varPill ctx v
            Nothing -> ""

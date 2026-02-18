@@ -1,9 +1,10 @@
 -- | Signature Demo Page
 -- |
--- | Renders every test signature in three tabs:
+-- | Renders every test signature in four tabs:
 -- |   1. Readme (library description)
 -- |   2. Sigils (full HTML semantic signatures)
 -- |   3. Siglets (compact dot notation)
+-- |   4. Labeled (dots with rotated identifier labels)
 module Demo.Main where
 
 import Prelude
@@ -27,13 +28,15 @@ main = do
   Array.foldM (\_ s -> renderSigil s) unit signatures
   -- Pass 2: Siglets
   Array.foldM (\_ s -> renderSiglet s) unit signatures
-  -- Pass 3: Data type declarations
+  -- Pass 3: Labeled siglets
+  Array.foldM (\_ s -> renderLabeledSiglet s) unit signatures
+  -- Pass 4: Data type declarations
   Array.foldM (\_ d -> renderDataDecl d) unit dataDecls
-  -- Pass 4: Class declarations
+  -- Pass 5: Class declarations
   Array.foldM (\_ c -> renderClassDecl c) unit classDecls
-  -- Pass 5: Type synonyms
+  -- Pass 6: Type synonyms
   Array.foldM (\_ t -> renderTypeSyn t) unit typeSynonyms
-  -- Pass 6: Foreign imports
+  -- Pass 7: Foreign imports
   Array.foldM (\_ f -> renderForeignImp f) unit foreignImports
   log "[SigilDemo] Done"
 
@@ -59,6 +62,18 @@ renderSiglet s = do
         { ast: elideAST ast }
     Nothing -> do
       createRow "siglet-table" s.idx s.name s.category s.sig containerId false
+      log $ "[SigilDemo] Parse failed: #" <> show s.idx <> " " <> s.name
+
+renderLabeledSiglet :: { idx :: Int, category :: String, name :: String, sig :: String } -> Effect Unit
+renderLabeledSiglet s = do
+  let containerId = "labeled-" <> show s.idx
+  case parseToRenderType s.sig of
+    Just ast -> do
+      createRow "labeled-table" s.idx s.name s.category s.sig containerId true
+      Sigil.renderLabeledSigletInto ("#" <> containerId)
+        { ast: elideAST ast }
+    Nothing -> do
+      createRow "labeled-table" s.idx s.name s.category s.sig containerId false
       log $ "[SigilDemo] Parse failed: #" <> show s.idx <> " " <> s.name
 
 renderDataDecl :: TestDataDecl -> Effect Unit

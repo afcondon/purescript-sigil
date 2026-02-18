@@ -4,7 +4,7 @@
 -- |   1. Readme (library description)
 -- |   2. Sigils (full HTML semantic signatures)
 -- |   3. Siglets (compact dot notation)
--- |   4. Labeled (dots with rotated identifier labels)
+-- |   4. Signets (dots with rotated identifier labels)
 module Demo.Main where
 
 import Prelude
@@ -28,8 +28,8 @@ main = do
   Array.foldM (\_ s -> renderSigil s) unit signatures
   -- Pass 2: Siglets
   Array.foldM (\_ s -> renderSiglet s) unit signatures
-  -- Pass 3: Labeled siglets
-  Array.foldM (\_ s -> renderLabeledSiglet s) unit signatures
+  -- Pass 3: Signets
+  Array.foldM (\_ s -> renderSignet s) unit signatures
   -- Pass 4: Data type declarations
   Array.foldM (\_ d -> renderDataDecl d) unit dataDecls
   -- Pass 5: Class declarations
@@ -64,16 +64,16 @@ renderSiglet s = do
       createRow "siglet-table" s.idx s.name s.category s.sig containerId false
       log $ "[SigilDemo] Parse failed: #" <> show s.idx <> " " <> s.name
 
-renderLabeledSiglet :: { idx :: Int, category :: String, name :: String, sig :: String } -> Effect Unit
-renderLabeledSiglet s = do
-  let containerId = "labeled-" <> show s.idx
+renderSignet :: { idx :: Int, category :: String, name :: String, sig :: String } -> Effect Unit
+renderSignet s = do
+  let containerId = "signet-" <> show s.idx
   case parseToRenderType s.sig of
     Just ast -> do
-      createRow "labeled-table" s.idx s.name s.category s.sig containerId true
-      Sigil.renderLabeledSigletInto ("#" <> containerId)
+      createRow "signet-table" s.idx s.name s.category s.sig containerId true
+      Sigil.renderSignetInto ("#" <> containerId)
         { ast: elideAST ast }
     Nothing -> do
-      createRow "labeled-table" s.idx s.name s.category s.sig containerId false
+      createRow "signet-table" s.idx s.name s.category s.sig containerId false
       log $ "[SigilDemo] Parse failed: #" <> show s.idx <> " " <> s.name
 
 renderDataDecl :: TestDataDecl -> Effect Unit

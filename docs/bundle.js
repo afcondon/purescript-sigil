@@ -407,7 +407,7 @@
       return function(dictSemigroupRecord) {
         var appendRecord1 = appendRecord(dictSemigroupRecord);
         return function(dictSemigroup) {
-          var append13 = append(dictSemigroup);
+          var append14 = append(dictSemigroup);
           return {
             appendRecord: function(v) {
               return function(ra) {
@@ -416,7 +416,7 @@
                   var key = reflectSymbol2($$Proxy.value);
                   var insert5 = unsafeSet(key);
                   var get = unsafeGet(key);
-                  return insert5(append13(get(ra))(get(rb)))(tail2);
+                  return insert5(append14(get(ra))(get(rb)))(tail2);
                 };
               };
             }
@@ -1173,7 +1173,7 @@
   var intercalate = function(dictFoldable) {
     var foldl22 = foldl(dictFoldable);
     return function(dictMonoid) {
-      var append4 = append(dictMonoid.Semigroup0());
+      var append3 = append(dictMonoid.Semigroup0());
       var mempty2 = mempty(dictMonoid);
       return function(sep) {
         return function(xs) {
@@ -1188,7 +1188,7 @@
               ;
               return {
                 init: false,
-                acc: append4(v.acc)(append4(sep)(v1))
+                acc: append3(v.acc)(append3(sep)(v1))
               };
             };
           };
@@ -1251,12 +1251,12 @@
   var foldMapDefaultR = function(dictFoldable) {
     var foldr2 = foldr(dictFoldable);
     return function(dictMonoid) {
-      var append4 = append(dictMonoid.Semigroup0());
+      var append3 = append(dictMonoid.Semigroup0());
       var mempty2 = mempty(dictMonoid);
       return function(f) {
         return foldr2(function(x) {
           return function(acc) {
-            return append4(f(x))(acc);
+            return append3(f(x))(acc);
           };
         })(mempty2);
       };
@@ -2527,7 +2527,7 @@
     },
     foldMap: function(dictMonoid) {
       var mempty2 = mempty(dictMonoid);
-      var append13 = append(dictMonoid.Semigroup0());
+      var append14 = append(dictMonoid.Semigroup0());
       return function(f) {
         var go = function(v) {
           if (v instanceof Leaf) {
@@ -2535,7 +2535,7 @@
           }
           ;
           if (v instanceof Node) {
-            return append13(go(v.value4))(append13(f(v.value3))(go(v.value5)));
+            return append14(go(v.value4))(append14(f(v.value3))(go(v.value5)));
           }
           ;
           throw new Error("Failed pattern match at Data.Map.Internal (line 181, column 10 - line 184, column 28): " + [v.constructor.name]);
@@ -2589,7 +2589,7 @@
     },
     foldMapWithIndex: function(dictMonoid) {
       var mempty2 = mempty(dictMonoid);
-      var append13 = append(dictMonoid.Semigroup0());
+      var append14 = append(dictMonoid.Semigroup0());
       return function(f) {
         var go = function(v) {
           if (v instanceof Leaf) {
@@ -2597,7 +2597,7 @@
           }
           ;
           if (v instanceof Node) {
-            return append13(go(v.value4))(append13(f(v.value2)(v.value3))(go(v.value5)));
+            return append14(go(v.value4))(append14(f(v.value2)(v.value3))(go(v.value5)));
           }
           ;
           throw new Error("Failed pattern match at Data.Map.Internal (line 201, column 10 - line 204, column 30): " + [v.constructor.name]);
@@ -3437,7 +3437,7 @@
   };
 
   // output/Sigil.Html/index.js
-  var append3 = /* @__PURE__ */ append(semigroupArray);
+  var append12 = /* @__PURE__ */ append(semigroupArray);
   var intercalate3 = /* @__PURE__ */ intercalate2(monoidString);
   var mapFlipped2 = /* @__PURE__ */ mapFlipped(functorArray);
   var lookup2 = /* @__PURE__ */ lookup(ordString);
@@ -3447,13 +3447,21 @@
   var nub3 = /* @__PURE__ */ nub(ordString);
   var map5 = /* @__PURE__ */ map(functorArray);
   var union4 = /* @__PURE__ */ union2(ordString);
+  var truncateLabel = function(s) {
+    var $34 = length3(s) > 15;
+    if ($34) {
+      return take2(15)(s) + "\u2026";
+    }
+    ;
+    return s;
+  };
   var peelSignature = function(v) {
     if (v instanceof TForall) {
       var rest = peelSignature(v.value1);
       return {
         constraints: rest.constraints,
         body: rest.body,
-        forallVars: append3(v.value0)(rest.forallVars)
+        forallVars: append12(v.value0)(rest.forallVars)
       };
     }
     ;
@@ -3462,7 +3470,7 @@
       return {
         forallVars: rest.forallVars,
         body: rest.body,
-        constraints: append3(v.value0)(rest.constraints)
+        constraints: append12(v.value0)(rest.constraints)
       };
     }
     ;
@@ -3522,10 +3530,10 @@
               return acc;
             }
             ;
-            throw new Error("Failed pattern match at Sigil.Html (line 342, column 19 - line 348, column 24): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Sigil.Html (line 364, column 19 - line 370, column 24): " + [v.constructor.name]);
           }
           ;
-          throw new Error("Failed pattern match at Sigil.Html (line 339, column 3 - line 339, column 32): " + [i.constructor.name, acc.constructor.name]);
+          throw new Error("Failed pattern match at Sigil.Html (line 361, column 3 - line 361, column 32): " + [i.constructor.name, acc.constructor.name]);
         }
         ;
         while (!$tco_done) {
@@ -3536,6 +3544,13 @@
       };
     };
     return go(0)("");
+  };
+  var labeledToken = function(dotHtml) {
+    return function(labelText) {
+      return function(labelColor) {
+        return '<span class="sig-lt">' + (dotHtml + ('<span class="sig-lt-label" style="color:' + (labelColor + ('">' + (escapeHtml(truncateLabel(labelText)) + "</span></span>")))));
+      };
+    };
   };
   var renderSuperclassRow = function(names) {
     return '<div class="sig-class-supers">' + ('<small class="sig-class-arrow">&lt;=</small>' + (intercalate3('<small class="sig-class-comma">, </small>')(mapFlipped2(names)(function(n) {
@@ -3575,8 +3590,8 @@
       return function(close) {
         return function(fields) {
           return function(tail2) {
-            var $45 = $$null(fields) && eq3(tail2)(Nothing.value);
-            if ($45) {
+            var $48 = $$null(fields) && eq3(tail2)(Nothing.value);
+            if ($48) {
               return '<small class="sig-dot sig-dot-con"></small>';
             }
             ;
@@ -3591,7 +3606,35 @@
                 return "";
               }
               ;
-              throw new Error("Failed pattern match at Sigil.Html (line 693, column 10 - line 695, column 25): " + [tail2.constructor.name]);
+              throw new Error("Failed pattern match at Sigil.Html (line 715, column 10 - line 717, column 25): " + [tail2.constructor.name]);
+            })() + ('<small class="sig-brace">' + (close + "</small></code>")))))));
+          };
+        };
+      };
+    };
+  };
+  var renderRecordSignet = function(ctx) {
+    return function(open) {
+      return function(close) {
+        return function(fields) {
+          return function(tail2) {
+            var $51 = $$null(fields) && eq3(tail2)(Nothing.value);
+            if ($51) {
+              return '<small class="sig-dot sig-dot-con"></small>';
+            }
+            ;
+            return '<code class="sig-record-mini">' + ('<small class="sig-brace">' + (open + ("</small>" + (intercalate3("")(mapFlipped2(fields)(function(f) {
+              return labeledToken('<small class="sig-dot sig-dot-con"></small>')(f.label)("#16653e");
+            })) + ((function() {
+              if (tail2 instanceof Just) {
+                return '<small class="sig-pipe">|</small>' + varPill(ctx)(tail2.value0);
+              }
+              ;
+              if (tail2 instanceof Nothing) {
+                return "";
+              }
+              ;
+              throw new Error("Failed pattern match at Sigil.Html (line 848, column 10 - line 850, column 25): " + [tail2.constructor.name]);
             })() + ('<small class="sig-brace">' + (close + "</small></code>")))))));
           };
         };
@@ -3601,14 +3644,14 @@
   var renderSigletTypeTree = function(ctx) {
     return function(v) {
       if (v instanceof TVar) {
-        var $49 = length3(v.value0) > 1;
-        if ($49) {
+        var $55 = length3(v.value0) > 1;
+        if ($55) {
           var color = fromMaybe("#0369a1")(lookup2(v.value0)(ctx.varColors));
           return '<var class="sig-dot sig-dot-var" style="background:' + (color + '"></var>');
         }
         ;
-        var $50 = member4(v.value0)(ctx.constrainedVars);
-        if ($50) {
+        var $56 = member4(v.value0)(ctx.constrainedVars);
+        if ($56) {
           return sigletPill(ctx)(v.value0);
         }
         ;
@@ -3616,8 +3659,8 @@
       }
       ;
       if (v instanceof TCon) {
-        var $52 = isEffectName(v.value0);
-        if ($52) {
+        var $58 = isEffectName(v.value0);
+        if ($58) {
           return '<small class="sig-dot sig-dot-effect"></small>';
         }
         ;
@@ -3634,8 +3677,8 @@
         })();
         var headHtml = (function() {
           if (v.value0 instanceof TCon) {
-            var $57 = isEffectName(v.value0.value0);
-            if ($57) {
+            var $63 = isEffectName(v.value0.value0);
+            if ($63) {
               return '<small class="sig-dot sig-dot-effect sig-dot-head"></small>';
             }
             ;
@@ -3698,12 +3741,115 @@
         return '<var class="sig-dot sig-dot-var sig-wildcard"></var>';
       }
       ;
-      throw new Error("Failed pattern match at Sigil.Html (line 608, column 28 - line 681, column 61): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Sigil.Html (line 630, column 28 - line 703, column 61): " + [v.constructor.name]);
+    };
+  };
+  var renderSignetTypeTree = function(ctx) {
+    return function(v) {
+      if (v instanceof TVar) {
+        var $86 = length3(v.value0) > 1;
+        if ($86) {
+          var color = fromMaybe("#0369a1")(lookup2(v.value0)(ctx.varColors));
+          return labeledToken('<var class="sig-dot sig-dot-var" style="background:' + (color + '"></var>'))(v.value0)(color);
+        }
+        ;
+        var $87 = member4(v.value0)(ctx.constrainedVars);
+        if ($87) {
+          return sigletPill(ctx)(v.value0);
+        }
+        ;
+        return varPill(ctx)(v.value0);
+      }
+      ;
+      if (v instanceof TCon) {
+        var $89 = isEffectName(v.value0);
+        if ($89) {
+          return labeledToken('<small class="sig-dot sig-dot-effect"></small>')(v.value0)("#9333ea");
+        }
+        ;
+        return labeledToken('<small class="sig-dot sig-dot-con"></small>')(v.value0)("#16653e");
+      }
+      ;
+      if (v instanceof TApp) {
+        var isHkt = (function() {
+          if (v.value0 instanceof TVar) {
+            return true;
+          }
+          ;
+          return false;
+        })();
+        var headHtml = (function() {
+          if (v.value0 instanceof TCon) {
+            var $94 = isEffectName(v.value0.value0);
+            if ($94) {
+              return labeledToken('<small class="sig-dot sig-dot-effect sig-dot-head"></small>')(v.value0.value0)("#9333ea");
+            }
+            ;
+            return labeledToken('<small class="sig-dot sig-dot-con sig-dot-head"></small>')(v.value0.value0)("#16653e");
+          }
+          ;
+          return renderSignetTypeTree(ctx)(v.value0);
+        })();
+        var cls = (function() {
+          if (isHkt) {
+            return "sig-app sig-hkt";
+          }
+          ;
+          return "sig-app";
+        })();
+        var argsHtml = intercalate3("")(mapFlipped2(v.value1)(renderSignetTypeTree(ctx)));
+        return '<code class="' + (cls + ('">' + (headHtml + (argsHtml + "</code>"))));
+      }
+      ;
+      if (v instanceof TArrow) {
+        var params = collectArrowParams(new TArrow(v.value0, v.value1));
+        return '<ol class="sig-arrow-chain">' + (intercalate3("")(mapFlipped2(params)(function(p) {
+          return '<li class="sig-param">' + (renderSignetTypeTree(ctx)(p) + "</li>");
+        })) + "</ol>");
+      }
+      ;
+      if (v instanceof TForall) {
+        return renderSignetTypeTree(ctx)(v.value1);
+      }
+      ;
+      if (v instanceof TConstrained) {
+        return renderSignetTypeTree(ctx)(v.value1);
+      }
+      ;
+      if (v instanceof TParens) {
+        return '<code class="sig-app">' + ('<small class="sig-paren">(</small>' + (renderSignetTypeTree(ctx)(v.value0) + '<small class="sig-paren">)</small></code>'));
+      }
+      ;
+      if (v instanceof TRecord) {
+        return renderRecordSignet(ctx)("{")("}")(v.value0)(v.value1);
+      }
+      ;
+      if (v instanceof TRow) {
+        return renderRecordSignet(ctx)("(")(")")(v.value0)(v.value1);
+      }
+      ;
+      if (v instanceof TOperator) {
+        return '<code class="sig-app">' + (renderSignetTypeTree(ctx)(v.value0) + ('<small class="sig-op">' + (escapeHtml(v.value1) + ("</small>" + (renderSignetTypeTree(ctx)(v.value2) + "</code>")))));
+      }
+      ;
+      if (v instanceof TKinded) {
+        return renderSignetTypeTree(ctx)(v.value0);
+      }
+      ;
+      if (v instanceof TString) {
+        return '<code class="sig-string">""</code>';
+      }
+      ;
+      if (v instanceof TWildcard) {
+        return '<var class="sig-dot sig-dot-var sig-wildcard"></var>';
+      }
+      ;
+      throw new Error("Failed pattern match at Sigil.Html (line 745, column 28 - line 832, column 61): " + [v.constructor.name]);
     };
   };
   var collectPlusOperands = function(v) {
     if (v instanceof TOperator && v.value1 === "+") {
-      return append3(collectPlusOperands(v.value0))([v.value2]);
+      return append12(collectPlusOperands(v.value0))([v.value2]);
     }
     ;
     return [v];
@@ -3720,8 +3866,8 @@
       }
       ;
       if (v instanceof TCon) {
-        var $85 = isEffectName(v.value0);
-        if ($85) {
+        var $122 = isEffectName(v.value0);
+        if ($122) {
           return '<code class="sig-con sig-con-effect">' + (escapeHtml(v.value0) + "</code>");
         }
         ;
@@ -3772,7 +3918,7 @@
         return '<var class="sig-var sig-wildcard">_</var>';
       }
       ;
-      throw new Error("Failed pattern match at Sigil.Html (line 408, column 22 - line 463, column 50): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Sigil.Html (line 430, column 22 - line 485, column 50): " + [v.constructor.name]);
     };
   };
   var renderRowComboTree = function(ctx) {
@@ -3805,10 +3951,10 @@
               return "sig-record";
             }
             ;
-            throw new Error("Failed pattern match at Sigil.Html (line 579, column 17 - line 581, column 30): " + [tail2.constructor.name]);
+            throw new Error("Failed pattern match at Sigil.Html (line 601, column 17 - line 603, column 30): " + [tail2.constructor.name]);
           })();
-          var $109 = $$null(fields) && eq3(tail2)(Nothing.value);
-          if ($109) {
+          var $146 = $$null(fields) && eq3(tail2)(Nothing.value);
+          if ($146) {
             return '<code class="sig-con">' + (escapeHtml((function() {
               if (isRow) {
                 return "()";
@@ -3829,7 +3975,7 @@
               return "";
             }
             ;
-            throw new Error("Failed pattern match at Sigil.Html (line 592, column 10 - line 597, column 25): " + [tail2.constructor.name]);
+            throw new Error("Failed pattern match at Sigil.Html (line 614, column 10 - line 619, column 25): " + [tail2.constructor.name]);
           })() + "</dl>"))));
         };
       };
@@ -3858,8 +4004,8 @@
         ;
         if (head3 instanceof TCon && (head3.value0 === "Record" && (args.length === 1 && args[0] instanceof TParens))) {
           var operands = collectPlusOperands(args[0].value0);
-          var $119 = length(operands) > 1;
-          if ($119) {
+          var $156 = length(operands) > 1;
+          if ($156) {
             return renderRowComboTree(ctx)(operands);
           }
           ;
@@ -3920,8 +4066,8 @@
   var constraintPillTree = function(ctx) {
     return function(c) {
       return '<em class="sig-constraint">' + ('<code class="sig-con">' + (escapeHtml(c.className) + ("</code>" + (function() {
-        var $138 = $$null(c.args);
-        if ($138) {
+        var $175 = $$null(c.args);
+        if ($175) {
           return "";
         }
         ;
@@ -3937,8 +4083,8 @@
   var renderCtorItem = function(ctx) {
     return function(ctor) {
       return '<li class="sig-adt-ctor">' + ('<dfn class="sig-adt-ctor-name">' + (escapeHtml(ctor.name) + ("</dfn>" + ((function() {
-        var $139 = $$null(ctor.args);
-        if ($139) {
+        var $176 = $$null(ctor.args);
+        if ($176) {
           return '<small class="sig-adt-ctor-dash">\u2014</small>';
         }
         ;
@@ -3961,7 +4107,7 @@
         return "data ";
       }
       ;
-      throw new Error("Failed pattern match at Sigil.Html (line 151, column 10 - line 153, column 25): " + [opts.keyword.constructor.name]);
+      throw new Error("Failed pattern match at Sigil.Html (line 173, column 10 - line 175, column 25): " + [opts.keyword.constructor.name]);
     })();
     var isOpaque = $$null(opts.constructors);
     var outerClass = (function() {
@@ -3971,7 +4117,7 @@
       ;
       return "sig-adt";
     })();
-    var allVars = append3(opts.typeParams)(concatMap(function(c) {
+    var allVars = append12(opts.typeParams)(concatMap(function(c) {
       return concatMap(function(a) {
         return toUnfoldable3(collectTypeVars(a));
       })(c.args);
@@ -3997,8 +4143,8 @@
   var renderCtxItem = function(ctx) {
     return function(c) {
       return '<em class="sig-ctx-item">' + ('<code class="sig-ctx-class">' + (escapeHtml(c.className) + ("</code>" + (function() {
-        var $144 = $$null(c.args);
-        if ($144) {
+        var $181 = $$null(c.args);
+        if ($181) {
           return "";
         }
         ;
@@ -4017,8 +4163,8 @@
         ;
         return "";
       })() + ((function() {
-        var $146 = hasForall && hasConstraints;
-        if ($146) {
+        var $183 = hasForall && hasConstraints;
+        if ($183) {
           return '<small class="sig-leader"></small>';
         }
         ;
@@ -4035,7 +4181,7 @@
   var renderForeignImport = function(opts) {
     var peeled = peelSignature(opts.ast);
     var hasPreamble = !$$null(peeled.forallVars) || !$$null(peeled.constraints);
-    var allVars = append3(toUnfoldable3(collectTypeVars(opts.ast)))(peeled.forallVars);
+    var allVars = append12(toUnfoldable3(collectTypeVars(opts.ast)))(peeled.forallVars);
     var varColors = assignVarColors(nub3(allVars));
     var ctx = {
       varColors,
@@ -4059,7 +4205,7 @@
       return function(m) {
         if (m.ast instanceof Just) {
           var peeled = peelSignature(m.ast.value0);
-          var methodVars = append3(typeParams)(append3(collectForallVars(m.ast.value0))(toUnfoldable3(collectTypeVars(m.ast.value0))));
+          var methodVars = append12(typeParams)(append12(collectForallVars(m.ast.value0))(toUnfoldable3(collectTypeVars(m.ast.value0))));
           var varColors = assignVarColors(nub3(methodVars));
           var hasForall = !$$null(peeled.forallVars);
           var hasConstraints = !$$null(peeled.constraints);
@@ -4086,7 +4232,7 @@
           return '<div class="sig-method">' + ('<div class="sig-method-decl">' + ('<dfn class="sig-method-name">' + (escapeHtml(m.name) + "</dfn></div></div>")));
         }
         ;
-        throw new Error("Failed pattern match at Sigil.Html (line 767, column 35 - line 802, column 16): " + [m.ast.constructor.name]);
+        throw new Error("Failed pattern match at Sigil.Html (line 922, column 35 - line 957, column 16): " + [m.ast.constructor.name]);
       };
     };
   };
@@ -4094,15 +4240,15 @@
     return function(typeParams) {
       return function(superclasses) {
         var groups = concatMap(function(sc) {
-          var $156 = $$null(sc.methods);
-          if ($156) {
+          var $193 = $$null(sc.methods);
+          if ($193) {
             return [];
           }
           ;
           return ['<div class="sig-class-via-group">' + ('<div class="sig-class-via">via ' + (escapeHtml(sc.name) + ("</div>" + (intercalate3("")(mapFlipped2(sc.methods)(renderMethod(ctx)(typeParams))) + "</div>"))))];
         })(superclasses);
-        var $157 = $$null(groups);
-        if ($157) {
+        var $194 = $$null(groups);
+        if ($194) {
           return "";
         }
         ;
@@ -4113,8 +4259,8 @@
   var renderMethodList = function(ctx) {
     return function(typeParams) {
       return function(methods) {
-        var $158 = $$null(methods);
-        if ($158) {
+        var $195 = $$null(methods);
+        if ($195) {
           return '<div class="sig-class-methods sig-class-no-methods"><em class="sig-class-empty">(no own methods)</em></div>';
         }
         ;
@@ -4156,7 +4302,7 @@
   var renderSignature = function(v) {
     var peeled = peelSignature(v.ast);
     var hasPreamble = !$$null(peeled.forallVars) || !$$null(peeled.constraints);
-    var allVars = append3(toUnfoldable3(collectTypeVars(v.ast)))(append3(peeled.forallVars)(v.typeParams));
+    var allVars = append12(toUnfoldable3(collectTypeVars(v.ast)))(append12(peeled.forallVars)(v.typeParams));
     var varColors = assignVarColors(nub3(allVars));
     var ctx = {
       varColors,
@@ -4177,7 +4323,7 @@
         return "";
       }
       ;
-      throw new Error("Failed pattern match at Sigil.Html (line 80, column 12 - line 82, column 27): " + [v.className.constructor.name]);
+      throw new Error("Failed pattern match at Sigil.Html (line 82, column 12 - line 84, column 27): " + [v.className.constructor.name]);
     })() + ('<small class="sig-dcolon"> ::</small>' + ("</div>" + ('<div class="sig-body">' + (renderTypeTree(ctx)(peeled.body) + "</div></code>"))))))))));
   };
   var renderSignatureInto = function(selector) {
@@ -4189,7 +4335,7 @@
     var peeled = peelSignature(opts.body);
     var hasForall = !$$null(peeled.forallVars);
     var hasConstraints = !$$null(peeled.constraints);
-    var allVars = append3(opts.typeParams)(append3(peeled.forallVars)(toUnfoldable3(collectTypeVars(opts.body))));
+    var allVars = append12(opts.typeParams)(append12(peeled.forallVars)(toUnfoldable3(collectTypeVars(opts.body))));
     var varColors = assignVarColors(nub3(allVars));
     var ctx = {
       varColors,
@@ -4239,6 +4385,22 @@
   var renderSigletInto = function(selector) {
     return function(config) {
       return _renderInto(selector)(renderSiglet(config));
+    };
+  };
+  var renderSignet = function(v) {
+    var peeled = peelSignature(v.ast);
+    var cVars = collectConstrainedVarNames(peeled.constraints);
+    var allVars = toUnfoldable3(collectTypeVars(v.ast));
+    var varColors = assignVarColors(allVars);
+    var ctx = {
+      varColors,
+      constrainedVars: cVars
+    };
+    return '<code class="sig-signet">' + (renderSignetTypeTree(ctx)(peeled.body) + "</code>");
+  };
+  var renderSignetInto = function(selector) {
+    return function(config) {
+      return _renderInto(selector)(renderSignet(config));
     };
   };
 
@@ -7955,7 +8117,7 @@
 
   // output/Sigil.Parse/index.js
   var map9 = /* @__PURE__ */ map(functorArray);
-  var append12 = /* @__PURE__ */ append(semigroupArray);
+  var append13 = /* @__PURE__ */ append(semigroupArray);
   var extractBinderName = function(v) {
     if (v instanceof TypeVarName) {
       return [v.value0.value.name];
@@ -8081,7 +8243,7 @@
       var vars = concatMap(extractBinderName)(toArray(v.value1));
       var inner = simplify(v.value3);
       if (inner instanceof TForall) {
-        return new TForall(append12(vars)(inner.value0), inner.value1);
+        return new TForall(append13(vars)(inner.value0), inner.value1);
       }
       ;
       return new TForall(vars, inner);
@@ -8251,8 +8413,29 @@
         return log("[SigilDemo] Type synonym parse failed: " + t.name)();
       }
       ;
-      throw new Error("Failed pattern match at Demo.Main (line 100, column 3 - line 105, column 64): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Demo.Main (line 115, column 3 - line 120, column 64): " + [v.constructor.name]);
     };
+  };
+  var renderSignet2 = function(s) {
+    var containerId = "signet-" + show2(s.idx);
+    var v = parseToRenderType(s.sig);
+    if (v instanceof Just) {
+      return function __do2() {
+        createRow("signet-table")(s.idx)(s.name)(s.category)(s.sig)(containerId)(true)();
+        return renderSignetInto("#" + containerId)({
+          ast: elideAST(v.value0)
+        })();
+      };
+    }
+    ;
+    if (v instanceof Nothing) {
+      return function __do2() {
+        createRow("signet-table")(s.idx)(s.name)(s.category)(s.sig)(containerId)(false)();
+        return log("[SigilDemo] Parse failed: #" + (show2(s.idx) + (" " + s.name)))();
+      };
+    }
+    ;
+    throw new Error("Failed pattern match at Demo.Main (line 70, column 3 - line 77, column 73): " + [v.constructor.name]);
   };
   var renderSiglet2 = function(s) {
     var containerId = "siglet-" + show2(s.idx);
@@ -8273,7 +8456,7 @@
       };
     }
     ;
-    throw new Error("Failed pattern match at Demo.Main (line 55, column 3 - line 62, column 73): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Demo.Main (line 58, column 3 - line 65, column 73): " + [v.constructor.name]);
   };
   var renderSigil = function(s) {
     var containerId = "sigil-" + show2(s.idx);
@@ -8297,7 +8480,7 @@
       };
     }
     ;
-    throw new Error("Failed pattern match at Demo.Main (line 43, column 3 - line 50, column 73): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Demo.Main (line 46, column 3 - line 53, column 73): " + [v.constructor.name]);
   };
   var renderForeignImp = function(f) {
     var containerId = "foreign-" + show2(f.idx);
@@ -8315,7 +8498,7 @@
         return log("[SigilDemo] Foreign import parse failed: " + f.name)();
       }
       ;
-      throw new Error("Failed pattern match at Demo.Main (line 111, column 3 - line 116, column 66): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Demo.Main (line 126, column 3 - line 131, column 66): " + [v.constructor.name]);
     };
   };
   var renderDataDecl2 = function(d) {
@@ -8335,7 +8518,7 @@
               return [];
             }
             ;
-            throw new Error("Failed pattern match at Demo.Main (line 70, column 40 - line 72, column 26): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Demo.Main (line 85, column 40 - line 87, column 26): " + [v.constructor.name]);
           })(c.argSigs)
         };
       })(d.constructors);
@@ -8386,6 +8569,11 @@
     foldM2(function(v) {
       return function(s) {
         return renderSiglet2(s);
+      };
+    })(unit)(signatures)();
+    foldM2(function(v) {
+      return function(s) {
+        return renderSignet2(s);
       };
     })(unit)(signatures)();
     foldM2(function(v) {

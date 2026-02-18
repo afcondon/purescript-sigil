@@ -16,7 +16,7 @@ module Sigil.Html
   ( renderSignature
   , renderBody
   , renderSiglet
-  , renderLabeledSiglet
+  , renderSignet
   , renderDataDecl
   , renderClassDecl
   , renderTypeSynonym
@@ -24,7 +24,7 @@ module Sigil.Html
   , renderSignatureInto
   , renderBodyInto
   , renderSigletInto
-  , renderLabeledSigletInto
+  , renderSignetInto
   , renderDataDeclInto
   , renderClassDeclInto
   , renderTypeSynonymInto
@@ -135,11 +135,11 @@ renderBodyInto selector config = _renderInto selector (renderBody config)
 renderSigletInto :: String -> { ast :: RenderType } -> Effect Unit
 renderSigletInto selector config = _renderInto selector (renderSiglet config)
 
--- | Render a labeled siglet (dots with rotated identifier labels) to HTML.
+-- | Render a signet (dots with rotated identifier labels) to HTML.
 -- | Same dot layout as the siglet, but each dot has a 45-degree rotated
 -- | label beneath it showing the type identifier name.
-renderLabeledSiglet :: { ast :: RenderType } -> String
-renderLabeledSiglet { ast } =
+renderSignet :: { ast :: RenderType } -> String
+renderSignet { ast } =
   let
     peeled = peelSignature ast
     allVars = Set.toUnfoldable (collectTypeVars ast)
@@ -147,13 +147,13 @@ renderLabeledSiglet { ast } =
     cVars = collectConstrainedVarNames peeled.constraints
     ctx = { varColors, constrainedVars: cVars }
   in
-  "<code class=\"sig-labeled-siglet\">"
-    <> renderLabeledSigletTypeTree ctx peeled.body
+  "<code class=\"sig-signet\">"
+    <> renderSignetTypeTree ctx peeled.body
   <> "</code>"
 
--- | Render a labeled siglet into a container element.
-renderLabeledSigletInto :: String -> { ast :: RenderType } -> Effect Unit
-renderLabeledSigletInto selector config = _renderInto selector (renderLabeledSiglet config)
+-- | Render a signet into a container element.
+renderSignetInto :: String -> { ast :: RenderType } -> Effect Unit
+renderSignetInto selector config = _renderInto selector (renderSignet config)
 
 -- | Render a data/newtype declaration to an HTML string.
 -- | Shows header (keyword + name + type params), then constructor branches
@@ -719,7 +719,7 @@ renderRecordSiglet ctx open close fields tail =
     <> "</code>"
 
 -- =============================================================================
--- Labeled siglet (dots + rotated identifier labels) type tree builder
+-- Signet (dots + rotated identifier labels) type tree builder
 -- =============================================================================
 
 -- | Truncate a label to 15 characters, adding ellipsis if truncated.
@@ -739,10 +739,10 @@ labeledToken dotHtml labelText labelColor =
       <> "</span>"
   <> "</span>"
 
--- | Labeled siglet rendering: same dots as siglet, plus rotated name labels.
+-- | Signet rendering: same dots as siglet, plus rotated name labels.
 -- | Single-letter free vars render as colored text (already readable, no label).
-renderLabeledSigletTypeTree :: TreeCtx -> RenderType -> String
-renderLabeledSigletTypeTree ctx = case _ of
+renderSignetTypeTree :: TreeCtx -> RenderType -> String
+renderSignetTypeTree ctx = case _ of
   TVar name ->
     if String.length name > 1
       then -- Multi-letter var → colored dot + label
@@ -783,8 +783,8 @@ renderLabeledSigletTypeTree ctx = case _ of
                    "<small class=\"sig-dot sig-dot-con sig-dot-head\"></small>"
                    name
                    "#16653e"
-        _ -> renderLabeledSigletTypeTree ctx head
-      argsHtml = Array.intercalate "" (args <#> renderLabeledSigletTypeTree ctx)
+        _ -> renderSignetTypeTree ctx head
+      argsHtml = Array.intercalate "" (args <#> renderSignetTypeTree ctx)
       cls = if isHkt then "sig-app sig-hkt" else "sig-app"
     in "<code class=\"" <> cls <> "\">" <> headHtml <> argsHtml <> "</code>"
 
@@ -792,38 +792,38 @@ renderLabeledSigletTypeTree ctx = case _ of
     let params = collectArrowParams (TArrow from to)
     in "<ol class=\"sig-arrow-chain\">"
          <> Array.intercalate "" (params <#> \p ->
-              "<li class=\"sig-param\">" <> renderLabeledSigletTypeTree ctx p <> "</li>"
+              "<li class=\"sig-param\">" <> renderSignetTypeTree ctx p <> "</li>"
             )
        <> "</ol>"
 
   TForall _ body ->
-    renderLabeledSigletTypeTree ctx body
+    renderSignetTypeTree ctx body
 
   TConstrained _ body ->
-    renderLabeledSigletTypeTree ctx body
+    renderSignetTypeTree ctx body
 
   TParens inner ->
     "<code class=\"sig-app\">"
       <> "<small class=\"sig-paren\">(</small>"
-      <> renderLabeledSigletTypeTree ctx inner
+      <> renderSignetTypeTree ctx inner
       <> "<small class=\"sig-paren\">)</small>"
     <> "</code>"
 
   TRecord fields tail ->
-    renderRecordLabeledSiglet ctx "{" "}" fields tail
+    renderRecordSignet ctx "{" "}" fields tail
 
   TRow fields tail ->
-    renderRecordLabeledSiglet ctx "(" ")" fields tail
+    renderRecordSignet ctx "(" ")" fields tail
 
   TOperator l op r ->
     "<code class=\"sig-app\">"
-      <> renderLabeledSigletTypeTree ctx l
+      <> renderSignetTypeTree ctx l
       <> "<small class=\"sig-op\">" <> escapeHtml op <> "</small>"
-      <> renderLabeledSigletTypeTree ctx r
+      <> renderSignetTypeTree ctx r
     <> "</code>"
 
   TKinded ty _ ->
-    renderLabeledSigletTypeTree ctx ty
+    renderSignetTypeTree ctx ty
 
   TString _ ->
     "<code class=\"sig-string\">\"\"</code>"
@@ -831,9 +831,9 @@ renderLabeledSigletTypeTree ctx = case _ of
   TWildcard ->
     "<var class=\"sig-dot sig-dot-var sig-wildcard\"></var>"
 
--- | Record/row in labeled siglet: `{ ○ ○ ○ }` with field name labels.
-renderRecordLabeledSiglet :: TreeCtx -> String -> String -> Array { label :: String, value :: RenderType } -> Maybe String -> String
-renderRecordLabeledSiglet ctx open close fields tail =
+-- | Record/row in signet: `{ ○ ○ ○ }` with field name labels.
+renderRecordSignet :: TreeCtx -> String -> String -> Array { label :: String, value :: RenderType } -> Maybe String -> String
+renderRecordSignet ctx open close fields tail =
   if Array.null fields && tail == Nothing then
     "<small class=\"sig-dot sig-dot-con\"></small>"
   else

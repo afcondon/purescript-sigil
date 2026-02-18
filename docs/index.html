@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>purescript-sigil</title>
+  <link rel="stylesheet" href="sigil.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -20,6 +21,8 @@
     <label for="tab-sigils">Sigils</label>
     <input type="radio" name="tab" id="tab-siglets">
     <label for="tab-siglets">Siglets</label>
+    <input type="radio" name="tab" id="tab-signets">
+    <label for="tab-signets">Signets</label>
     <input type="radio" name="tab" id="tab-datatypes">
     <label for="tab-datatypes">Data Types</label>
     <input type="radio" name="tab" id="tab-classes">
@@ -96,6 +99,19 @@ case parseToRenderType "forall a. Ord a => Array a -> Array a" of
           </tr>
         </thead>
         <tbody id="siglet-table"></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="panel-signets">
+      <table class="sig-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Signature</th>
+            <th>Rendered</th>
+          </tr>
+        </thead>
+        <tbody id="signet-table"></tbody>
       </table>
     </section>
 

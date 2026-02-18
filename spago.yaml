@@ -5,7 +5,7 @@ package:
   name: sigil
   description: Typographic rendering for type signatures (HTML + SVG)
   publish:
-    version: 0.1.0
+    version: 0.2.0
     license: MIT
     location:
       githubOwner: afcondon

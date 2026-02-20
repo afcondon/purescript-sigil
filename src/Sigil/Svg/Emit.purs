@@ -1,26 +1,34 @@
 -- | Emit: LayoutNode → Effect Element.
 -- |
--- | Pattern-matches on LayoutNode and calls thin SVG DOM FFI helpers.
+-- | Uses shared attribute mapping from `Sigil.Svg.Attrs` and calls thin
+-- | SVG DOM FFI helpers.
 module Sigil.Svg.Emit
   ( emit
   , emitNode
+  , renderClassDeclIntoSvg
+  , renderSignatureIntoSvg
+  , renderAdtIntoSvg
   ) where
 
 import Prelude
 
 import Data.Array as Array
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Web.DOM (Element)
 
-import Sigil.Svg.Types (LayoutNode(..), Dimensions)
+import Sigil.Types (RenderType, SuperclassInfo)
+import Sigil.Svg.Types (LayoutNode, Dimensions)
+import Sigil.Svg.Attrs (toSvgPrimitive)
+import Sigil.Svg.Layout.ClassDef (layoutClassDef)
+import Sigil.Svg.Layout.Signature (layoutSignature)
+import Sigil.Svg.Layout.ADT (layoutADT)
 
 foreign import createSvgElement :: String -> Effect Element
 foreign import setAttr :: Element -> String -> String -> Effect Unit
 foreign import appendChild :: Element -> Element -> Effect Unit
 foreign import setTextContent :: Element -> String -> Effect Unit
-
-fontFamily :: String
-fontFamily = "'Fira Code', 'SF Mono', 'Consolas', monospace"
+foreign import _appendInto :: String -> Element -> Effect Unit
 
 -- | Emit a layout tree as a detached SVG element with the given dimensions.
 emit :: LayoutNode -> Dimensions -> Effect Element
@@ -38,56 +46,58 @@ emit layout dims = do
 
 -- | Emit a single LayoutNode to a DOM element.
 emitNode :: LayoutNode -> Effect Element
-emitNode = case _ of
-  LText r -> do
-    el <- createSvgElement "text"
-    setAttr el "x" (show r.x)
-    setAttr el "y" (show r.y)
-    setAttr el "font-family" fontFamily
-    setAttr el "font-size" (show r.fontSize)
-    setAttr el "dominant-baseline" "middle"
-    when (r.style /= "") (setAttr el "style" r.style)
-    setTextContent el r.text
-    pure el
+emitNode node = do
+  let prim = toSvgPrimitive node
+  el <- createSvgElement prim.tag
+  Array.foldM (\_ a -> setAttr el a.key a.value) unit prim.attrs
+  case prim.textContent of
+    Just t -> setTextContent el t
+    Nothing -> pure unit
+  Array.foldM (\_ child -> do
+    childEl <- emitNode child
+    appendChild el childEl
+  ) unit prim.children
+  pure el
 
-  LRect r -> do
-    el <- createSvgElement "rect"
-    setAttr el "x" (show r.x)
-    setAttr el "y" (show r.y)
-    setAttr el "width" (show r.width)
-    setAttr el "height" (show r.height)
-    setAttr el "rx" (show r.rx)
-    setAttr el "ry" (show r.rx)
-    when (r.style /= "") (setAttr el "style" r.style)
-    pure el
+-- | Render a class definition into a DOM element selected by CSS selector.
+renderClassDeclIntoSvg
+  :: String
+  -> { name :: String
+     , typeParams :: Array String
+     , superclasses :: Array SuperclassInfo
+     , methods :: Array { name :: String, ast :: Maybe RenderType }
+     }
+  -> Effect Unit
+renderClassDeclIntoSvg selector opts = do
+  let { layout, dimensions } = layoutClassDef opts
+  svg <- emit layout dimensions
+  _appendInto selector svg
 
-  LLine r -> do
-    el <- createSvgElement "line"
-    setAttr el "x1" (show r.x1)
-    setAttr el "y1" (show r.y1)
-    setAttr el "x2" (show r.x2)
-    setAttr el "y2" (show r.y2)
-    setAttr el "stroke" r.stroke
-    setAttr el "stroke-width" (show r.strokeWidth)
-    when (r.strokeLinecap /= "") (setAttr el "stroke-linecap" r.strokeLinecap)
-    when (r.strokeDasharray /= "") (setAttr el "stroke-dasharray" r.strokeDasharray)
-    pure el
+-- | Render a signature into a DOM element selected by CSS selector.
+renderSignatureIntoSvg
+  :: String
+  -> { name :: String
+     , sig :: String
+     , ast :: RenderType
+     , typeParams :: Array String
+     , className :: Maybe String
+     }
+  -> Effect Unit
+renderSignatureIntoSvg selector opts = do
+  let { layout, dimensions } = layoutSignature opts
+  svg <- emit layout dimensions
+  _appendInto selector svg
 
-  LCircle r -> do
-    el <- createSvgElement "circle"
-    setAttr el "cx" (show r.cx)
-    setAttr el "cy" (show r.cy)
-    setAttr el "r" (show r.r)
-    setAttr el "fill" r.fill
-    when (r.stroke /= "") (setAttr el "stroke" r.stroke)
-    when (r.strokeWidth > 0.0) (setAttr el "stroke-width" (show r.strokeWidth))
-    pure el
-
-  LGroup r -> do
-    el <- createSvgElement "g"
-    when (r.transform /= "") (setAttr el "transform" r.transform)
-    Array.foldM (\_ child -> do
-      childEl <- emitNode child
-      appendChild el childEl
-    ) unit r.children
-    pure el
+-- | Render an ADT into a DOM element selected by CSS selector.
+renderAdtIntoSvg
+  :: String
+  -> { name :: String
+     , typeParams :: Array String
+     , constructors :: Array { name :: String, args :: Array RenderType }
+     , keyword :: Maybe String
+     }
+  -> Effect Unit
+renderAdtIntoSvg selector opts = do
+  let { layout, dimensions } = layoutADT opts
+  svg <- emit layout dimensions
+  _appendInto selector svg

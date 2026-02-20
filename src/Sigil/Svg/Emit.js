@@ -13,3 +13,11 @@ export const appendChild = (parent) => (child) => () =>
 export const setTextContent = (el) => (text) => () => {
   el.textContent = text;
 };
+
+export const _appendInto = (selector) => (child) => () => {
+  const target = document.querySelector(selector);
+  if (target) {
+    target.innerHTML = '';
+    target.appendChild(child);
+  }
+};

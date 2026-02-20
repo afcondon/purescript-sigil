@@ -13,6 +13,7 @@ module Sigil
   , module Sigil.Svg.Layout.ClassDef
   , module Sigil.Svg.Layout.Sparkline
   , module Sigil.Svg.Layout.Siglet
+  , module Sigil.Svg.Attrs
   , module Sigil.Svg.Emit
   , module MeasureExports
   ) where
@@ -24,10 +25,11 @@ import Sigil.Color (assignVarColors, isEffectName, isEffectNameIn, defaultEffect
 import Sigil.Parse (parseToRenderType, extractCtorArgs, extractCtorRenderTypes, elideAST, elideConstraint)
 import Sigil.Html (renderSignature, renderBody, renderSiglet, renderSignet, renderDataDecl, renderClassDecl, renderTypeSynonym, renderForeignImport, renderSignatureInto, renderBodyInto, renderSigletInto, renderSignetInto, renderDataDeclInto, renderClassDeclInto, renderTypeSynonymInto, renderForeignImportInto, peelSignature, escapeHtml)
 import Sigil.Svg.Types (LayoutNode(..), Dimensions, RenderResult)
+import Sigil.Svg.Attrs (SvgPrimitive, toSvgPrimitive, fontFamily)
 import Sigil.Svg.Layout.Signature (layoutSignature)
 import Sigil.Svg.Layout.ADT (layoutADT)
 import Sigil.Svg.Layout.ClassDef (layoutClassDef)
 import Sigil.Svg.Layout.Sparkline (layoutSparkline)
 import Sigil.Svg.Layout.Siglet (layoutSiglet)
-import Sigil.Svg.Emit (emit, emitNode)
+import Sigil.Svg.Emit (emit, emitNode, renderClassDeclIntoSvg, renderSignatureIntoSvg, renderAdtIntoSvg)
 import Sigil.Svg.Measure (RenderContext, defaultRenderContext, measure) as MeasureExports

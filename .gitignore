@@ -3,4 +3,3 @@ output/
 node_modules/
 .psa-stash/
 .psc-ide-port
-demo/public/bundle.js
